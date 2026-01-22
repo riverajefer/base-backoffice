@@ -1,0 +1,109 @@
+generator client {
+  provider     = "prisma-client-js"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  password     String
+  refreshToken String?
+  roleId       String
+  cargoId      String?
+  profilePhoto String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  firstName    String?
+  lastName     String?
+
+  role  Role   @relation(fields: [roleId], references: [id])
+  cargo Cargo? @relation(fields: [cargoId], references: [id])
+
+  @@map("users")
+}
+
+model Area {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  cargos Cargo[]
+
+  @@map("areas")
+}
+
+model Cargo {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  areaId String
+  area   Area   @relation(fields: [areaId], references: [id])
+
+  users User[]
+
+  @@unique([name, areaId])
+  @@map("cargos")
+}
+
+model Role {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  permissions RolePermission[]
+  users       User[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  assignedAt   DateTime   @default(now())
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?  @map("user_id")
+  recordId      String   @map("record_id")
+  action        String
+  model         String
+  oldData       Json?    @map("old_data")
+  newData       Json?    @map("new_data")
+  changedFields Json?    @map("changed_fields")
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  metadata      Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}
+
