@@ -1,4 +1,4 @@
-# NestJS Auth RBAC
+# Backoffice NestJS Auth RBAC
 
 Backend profesional con autenticación JWT y control de acceso basado en roles (RBAC) usando NestJS, Prisma y Passport.
 
